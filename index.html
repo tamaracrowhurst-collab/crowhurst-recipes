@@ -65,6 +65,10 @@ ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;ga
 .cat-card.fav{background:var(--saffron-soft);border-color:var(--saffron)}
 .cat-card.fav .nm{color:var(--ink)}
 .catbar{display:flex;align-items:center;gap:12px;margin:2px 0 10px}
+.titlebtn{display:block;background:none;border:0;padding:0;margin:0;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.navrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.homebtn{border:2px solid var(--accent);border-radius:999px;background:var(--surface);color:var(--accent);font-weight:700;padding:6px 14px;cursor:pointer;font-size:15px}
+.homebtn:hover{background:var(--accent-soft)}
 /* Detail */
 .back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--accent);font-weight:700;padding:6px 0;cursor:pointer;font-size:17px}
 .dhead{display:flex;flex-direction:column;gap:10px;margin:8px 0 18px}
@@ -349,7 +353,7 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
     var cats=ORDER.filter(function(c){return c==="All"||c==="Favourites"||R.some(function(r){return r.cat.indexOf(c)>-1})});
     if(state.cat&&cats.indexOf(state.cat)<0)state.cat="";
     var home=(!state.cat&&!state.q);
-    var h='<header class="top"><h1>Crowhurst Family Recipes</h1><p>'+(home?'Our favourite recipes in one place. Pick a category below, or search for a dish or ingredient.':'Tap a recipe to open it. Tap ingredients and steps to tick them off while you cook.')+'</p></header>';
+    var h='<header class="top"><button class="titlebtn" id="home" title="Go to categories"><h1>Crowhurst Family Recipes</h1></button><p>'+(home?'Our favourite recipes in one place. Pick a category below, or search for a dish or ingredient.':'Tap a recipe to open it. Tap ingredients and steps to tick them off while you cook.')+'</p></header>';
     h+='<div class="search"><label for="q" class="sr" style="position:absolute;left:-9999px">Search recipes</label><input id="q" type="search" placeholder="Search dish or ingredient" value="'+esc(state.q)+'" autocomplete="off">';
     if(!home)h+='<div class="chips" role="toolbar" aria-label="Categories">'+cats.map(function(c){var n=R.filter(function(r){return inCat(r,c)}).length;return '<button class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+esc(c==="Favourites"?"★ Favourites":(LABEL[c]||c))+'<span class="n">'+n+'</span></button>'}).join("")+'</div>';
     h+='</div>';
@@ -358,9 +362,11 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
     app.innerHTML=h;
     var q=document.getElementById("q");
     q.addEventListener("input",function(){state.q=q.value;renderResults()});
+    document.getElementById("home").onclick=goHome;
     app.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.cat=b.dataset.cat;store.set("cat",state.cat);app.querySelectorAll(".chip").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderResults()})});
     renderResults();
   }
+  function goHome(){state.cat="";state.q="";store.set("cat","");if(location.hash){location.hash="";}else{renderList();}}
   function renderGrid(){
     var items=["Favourites"].concat(ORDER.filter(function(c){return c!=="All"&&c!=="Favourites"&&R.some(function(r){return r.cat.indexOf(c)>-1})}));
     return '<div class="cats">'+items.map(function(c){
@@ -390,7 +396,7 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
   function releaseWake(){if(wake){try{wake.release()}catch(e){}wake=null}}
   function renderRecipe(r){
     releaseWake();
-    var h='<button class="back" id="back">‹ Back</button>';
+    var h='<div class="navrow"><button class="back" id="back">‹ Back</button><button class="homebtn" id="home">⌂ Home</button></div>';
     h+='<div class="dhead"><h2>'+esc(r.name)+'</h2><div class="facts">';
     if(r.time)h+='<span class="fact"><b>Time</b>'+esc(r.time)+'</span>';
     if(r.serves)h+='<span class="fact"><b>Makes</b>'+esc(r.serves)+'</span>';
@@ -412,10 +418,11 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
       if(r.notes)h+='<div class="note info"><b>Notes</b>'+esc(r.notes)+'</div>';
     }
     if(r.source&&!/^http/.test(r.source))h+='<p class="hint">Recipe by '+esc(r.source)+'</p>';
-    h+='<footer><button class="back" id="back2">‹ Back</button></footer>';
+    h+='<footer><div class="navrow"><button class="back" id="back2">‹ Back</button><button class="homebtn" id="home2">⌂ Home</button></div></footer>';
     app.innerHTML=h;window.scrollTo(0,0);
     function home(){location.hash="";}
     document.getElementById("back").onclick=home;document.getElementById("back2").onclick=home;
+    document.getElementById("home").onclick=goHome;document.getElementById("home2").onclick=goHome;
     document.getElementById("fav").onclick=function(){var i=favs.indexOf(r.id);if(i>-1)favs.splice(i,1);else favs.push(r.id);store.set("fav",favs);this.setAttribute("aria-pressed",isFav(r.id))};
     var w=document.getElementById("wake");
     if(w)w.onclick=function(){var b=this;if(wake){releaseWake();b.setAttribute("aria-pressed","false");b.textContent="Keep screen on";return}
