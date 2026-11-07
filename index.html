@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crowhurst Family Recipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a phone-first kitchen binder. Index of recipe rows on top, one recipe per screen, big readable type, tap-to-tick ingredients and steps. */
+:root{
+  --bg:#f4f6f2; --surface:#ffffff; --ink:#1d2a22; --muted:#5d6b62; --line:#dbe3dc;
+  --accent:#2f6b45; --accent-soft:#e3efe6; --saffron:#f3b33d; --saffron-soft:#fff4dc; --warn:#a33a2b;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121814; --surface:#1a221c; --ink:#e7eee9; --muted:#9fb0a5; --line:#2c3a31;
+  --accent:#7cc394; --accent-soft:#203327; --saffron:#f3b33d; --saffron-soft:#2e2615; --warn:#ff8b78; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#121814; --surface:#1a221c; --ink:#e7eee9; --muted:#9fb0a5; --line:#2c3a31;
+  --accent:#7cc394; --accent-soft:#203327; --saffron:#f3b33d; --saffron-soft:#2e2615; --warn:#ff8b78; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5;-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px;border-radius:6px}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 64px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+header.top{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+header.top h1{font-size:34px;font-weight:800;letter-spacing:-.01em}
+header.top p{margin:0;color:var(--muted);font-size:16px}
+.rule{display:flex;gap:10px;align-items:flex-start;background:var(--saffron-soft);border-left:5px solid var(--saffron);padding:10px 14px;border-radius:8px;font-size:16px;margin-bottom:16px}
+.rule b{white-space:nowrap}
+.search{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;display:flex;flex-direction:column;gap:10px}
+.search input{width:100%;font:inherit;font-size:18px;padding:13px 16px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink)}
+.search input:focus{border-color:var(--accent);outline:none}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:15px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:700}
+.chip .n{opacity:.65;margin-left:4px;font-variant-numeric:tabular-nums}
+.count{color:var(--muted);font-size:15px;margin:6px 0 10px}
+ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--ink)}
+.row:hover{border-color:var(--accent)}
+.row h3{font-size:19px;font-weight:600;grid-column:1}
+.row .meta{grid-column:1;color:var(--muted);font-size:14.5px;display:flex;flex-wrap:wrap;gap:4px 12px}
+.row .go{grid-column:2;grid-row:1/3;color:var(--accent);font-size:24px}
+.tag{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+.tag.vid{background:var(--saffron-soft);color:var(--ink)}
+.tag.fav{background:var(--saffron);color:#1d2a22}
+.empty{padding:30px 0;color:var(--muted);text-align:center}
+/* Detail */
+.back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--accent);font-weight:700;padding:6px 0;cursor:pointer;font-size:17px}
+.dhead{display:flex;flex-direction:column;gap:10px;margin:8px 0 18px}
+.dhead h2{font-size:32px;font-weight:800}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 12px;font-size:15px}
+.fact b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--accent);border-radius:10px;padding:9px 14px;font-weight:700;font-size:16px;text-decoration:none;background:var(--surface);color:var(--accent);cursor:pointer}
+.btn.solid{background:var(--accent);color:var(--bg)}
+.btn[aria-pressed="true"]{background:var(--saffron);border-color:var(--saffron);color:#1d2a22}
+section.block{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 10px;margin-top:14px}
+section.block h3{font-size:21px;font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+section.block h3 small{font-family:var(--body);font-weight:400;font-size:14px;color:var(--muted)}
+ul.ing{list-style:none;margin:0;padding:0}
+ul.ing li.grp{font-weight:700;color:var(--accent);margin:12px 0 2px;font-size:15px;text-transform:uppercase;letter-spacing:.05em}
+ul.ing li.it{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+ul.ing li.it:last-child{border-bottom:0}
+.box{flex:0 0 24px;height:24px;border:2px solid var(--muted);border-radius:6px;margin-top:2px;display:grid;place-items:center;font-size:16px;color:transparent}
+li.done .box{color:var(--bg)}
+li.done .box{background:var(--accent);border-color:var(--accent)}
+li.done .tx{text-decoration:line-through;color:var(--muted)}
+ol.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:40px 1fr;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+ol.steps li:last-child{border-bottom:0}
+ol.steps li::before{content:counter(s);font-family:var(--display);font-weight:800;font-size:20px;width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+ol.steps li.done::before{content:"✓";background:var(--accent);color:var(--bg)}
+ol.steps li.done .tx{color:var(--muted)}
+.note{border-radius:12px;padding:12px 14px;margin-top:14px;font-size:16.5px}
+.note.tip{background:var(--saffron-soft);border-left:5px solid var(--saffron)}
+.note.info{background:var(--accent-soft);border-left:5px solid var(--accent)}
+.note b{display:block;font-family:var(--display);font-size:15px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px}
+.hint{color:var(--muted);font-size:14px;margin:8px 0 0}
+footer{margin-top:28px;color:var(--muted);font-size:14px}
+@media (min-width:700px){.twocol{display:grid;grid-template-columns:5fr 7fr;gap:14px;align-items:start}.twocol section.block{margin-top:14px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+var R=[];
+R.push(
+{name:"Banana Pancakes",cat:["Breakfast","Zak"],time:"20 min",serves:"12 small pancakes",source:"https://www.onceuponachef.com/recipes/banana-pancakes.html",
+ing:["# Pancakes","1½ cups plain flour (spoon into cup, level off)","2 tbsp sugar","2½ tsp baking powder","½ tsp salt","1 small very ripe banana (the browner the better)","2 large eggs","1 cup + 2 tbsp low-fat milk","½ tsp vanilla extract","3 tbsp unsalted butter, melted","# For cooking","1–2 tbsp vegetable oil","1 tbsp unsalted butter","# To serve","Maple syrup","Sliced banana","Icing sugar (optional)"],
+steps:["In a medium bowl, whisk the flour, sugar, baking powder and salt.","In a small bowl, mash the banana with a fork until almost smooth. Whisk in the eggs, then the milk and vanilla.","Pour the banana mix and the melted butter into the flour. Fold gently with a spatula until just mixed. Do not over-mix: the batter should be thick and lumpy.","Heat a non-stick pan on medium. Add a little butter and 1 tbsp oil and swirl.","Drop ¼ cup of batter per pancake, 5 cm apart. Cook about 2 min until small holes appear on top and the bottom is golden.","Flip and cook 1–2 min more until golden and puffed.","Wipe the pan, add more butter and oil, and repeat. Serve hot with maple syrup and banana."],
+notes:"Freezer-friendly: cool completely, stack with baking paper between each pancake, wrap in foil or a freezer bag (up to 3 months). Reheat covered with foil at 190°C for 8–10 min.",
+tip:"Lumpy batter = fluffy pancakes. Stop mixing as soon as you can't see dry flour."},
+
+{name:"Roasted Potatoes with Za'atar & Aleppo Pepper",cat:["Sides","Arabic"],time:"1 hr",serves:"6–8",source:"https://food52.com/recipes/7952-a-medley-of-roasted-potatoes-with-homemade-za-atar-aleppo-pepper",
+ing:["1.4 kg (3 lb) potatoes, cut bite-size","4 tbsp za'atar","2 tbsp Aleppo pepper (or to taste)","1 lemon, juiced","4 tbsp extra virgin olive oil","# Homemade za'atar (optional)","3 tbsp sesame seeds, toasted","2 tbsp dried thyme","2 tbsp sumac","1 tbsp sea salt"],
+steps:["Preheat oven to 200°C (400°F).","Cut the potatoes into bite-size pieces.","In a bowl, mix the potatoes with za'atar, Aleppo pepper, lemon juice and olive oil.","Roast in a baking dish for 40–50 minutes until tender and golden brown."],
+tip:"Spread the potatoes in one layer so they get crispy, not steamed."},
+
+{name:"Baked Fish with Lemon Cream Sauce",cat:["Mains","Fish"],time:"20 min",serves:"4",source:"https://www.recipetineats.com/baked-fish-with-lemon-cream-sauce/",
+ing:["4 white fish fillets (150–180 g each), skinless, boneless","50 g (4 tbsp) unsalted butter","¼ cup cooking cream","1–2 garlic cloves, minced","1 tbsp Dijon mustard","1½ tbsp lemon juice","Salt and pepper","1½ tbsp finely chopped shallot or spring onion (white part)","Fresh parsley and lemon slices to serve"],
+steps:["Preheat oven to 200°C.","Place fish in a baking dish (not too tight). Season both sides with salt and pepper.","Put butter, cream, garlic, mustard, lemon juice, salt and pepper in a microwave-safe jug. Microwave 2 × 30 seconds, stirring between, until smooth.","Sprinkle the fish with shallot, then pour over the sauce.","Bake 10–12 minutes until the fish is just cooked. Spoon the sauce over and garnish with parsley and lemon."],
+notes:"About 280 calories per serving.",
+tip:"Fish is ready when it flakes easily with a fork. Don't overbake or it gets dry. (No salmon.)"},
+
+{name:"Bechamel Sauce",cat:["Sauces & Basics"],time:"15 min",serves:"about 4 cups",
+ing:["4 tbsp butter","4 tbsp flour","4 cups milk","1 tsp ground nutmeg","1 tsp white pepper","½ tsp garlic powder"],
+steps:["Melt the butter on medium heat.","Add the flour and stir well until it turns golden.","Add the milk and spices (white pepper, nutmeg, garlic) and keep stirring on medium heat until it thickens to the consistency you want."],
+notes:"Do not cover while cooking and keep stirring all the time.",
+tip:"Add the milk a little at a time and whisk to avoid lumps. Used for lasagna."},
+
+{name:"Peanut Butter Blueberry Muffins",cat:["Baking","Zak"],time:"30 min",serves:"about 8 muffins",
+ing:["2 bananas","2 eggs","4 tbsp peanut butter","⅓ cup flour","1 tsp baking powder","1 tbsp flaxseeds (optional)","¾–1 cup blueberries (fresh or frozen)"],
+steps:["Mash the 2 bananas.","In a bowl mix the banana, eggs, peanut butter, flour, baking powder and flaxseeds.","Gently fold in the blueberries. Too many makes them wet and they take longer to cook.","Bake in a muffin pan at 175°C (350°F) for 20–30 min, until a toothpick comes out clean."],
+tip:"Kid-friendly, no added sugar."},
+
+{name:"Broccoli Mac and Cheese",cat:["Pasta","Zak"],time:"25 min",serves:"4–6",
+ing:["340 g (12 oz) medium shell pasta","4 tbsp butter","¼ cup flour","4 cups skim milk","2½ tsp salt","1 tsp black pepper","1 pinch nutmeg","1 pinch cayenne (optional)","½ tsp garlic powder","½ tsp paprika","450 g frozen broccoli, thawed and roughly chopped","2 cups sharp cheddar, grated","Parmesan or toasted panko to serve (optional)"],
+steps:["Boil the pasta in salted water 1–2 minutes LESS than the packet says. Keep 1 cup of pasta water.","In a pot on medium-high, melt butter, add flour and whisk 1 minute.","Add the milk ½ cup at a time, whisking until each part is mixed in before adding more.","Keep whisking until it bubbles and thickens a little. Add salt, pepper, nutmeg, cayenne, garlic powder and paprika.","Stir in broccoli and pasta and cook 2–3 min. If too thick, add a little pasta water.","Stir in the cheddar, turn off the heat. Top with parmesan or panko if you like."]},
+
+{name:"Bulgur Mujadara",cat:["Mains","Arabic","Vegetarian"],time:"1 hr",serves:"4–6",source:"https://cooking.nytimes.com/recipes/1022595-bulgur-mujadara",
+ing:["1 cup whole brown/green lentils","½ cup olive oil","3 medium onions, sliced","1 tsp fine salt","½ tsp ground cumin","1½ cups coarse bulgur"],
+steps:["Boil lentils in 4 cups of water, then lower the heat and simmer 12–18 min until partly cooked (soft but still a bit firm). Turn off the heat. KEEP the water.","Meanwhile heat the olive oil in a frying pan on medium-high. Fry the onions, stirring often, until deep golden brown and starting to crisp, 15–20 min.","Rinse the bulgur and put it in the pot with the lentils. Add 3 cups of the saved lentil water, the salt and cumin.","Bring to a boil, pour in the onions with their oil, then turn heat to the lowest, cover and cook 10–15 min until done."],
+tip:"The dark crispy onions give all the flavour. Be patient, but don't let them burn. Serve with yogurt and salad."},
+
+{name:"Caesar Salad Dressing",cat:["Salads","Sauces & Basics"],time:"5 min",serves:"1 jar",
+ing:["1 can anchovies (or a good squeeze of anchovy paste)","2 tbsp lemon juice","1 egg white","2 garlic cloves, crushed","½ tsp sugar","½ tsp mustard powder","½ cup olive oil","3 tbsp red wine vinegar","Salt and pepper"],
+steps:["Put everything in a blender and blend until smooth.","Toss with romaine lettuce, croutons and parmesan."]}
+);
+
+R.push(
+{name:"Creamy Roasted Cauliflower Soup",cat:["Soups","Vegetarian"],time:"1 hr 10 min",serves:"4",source:"https://cookieandkate.com/creamy-roasted-cauliflower-soup-recipe/",
+ing:["1 large cauliflower (about 900 g), cut in florets","3 tbsp olive oil, divided","Salt","1 medium red onion, chopped","2 garlic cloves, minced","4 cups vegetable stock","2 tbsp unsalted butter","1 tbsp lemon juice (or more)","Small pinch (¼ tsp) nutmeg","Parsley, chives or spring onion to garnish"],
+steps:["Preheat oven to 220°C. Line a tray with baking paper.","Toss cauliflower with 2 tbsp oil, spread in one layer, sprinkle with salt. Roast 25–35 min until golden on the edges, turning halfway.","When the cauliflower is almost done, heat 1 tbsp oil in a big pot on medium. Cook onion with ¼ tsp salt for 5–7 min until soft.","Add garlic for 30 seconds, then add the stock.","Keep 4 nice florets for garnish. Add the rest of the cauliflower to the pot. Simmer gently 20 minutes.","Cool a few minutes, then blend in batches (don't overfill the blender!).","Add butter and blend smooth. Add lemon juice and nutmeg, blend again. Taste and add more salt (usually ¼–¾ tsp) and lemon if needed.","Serve each bowl with a roasted floret and herbs on top."],
+notes:"Keeps 4 days in the fridge or months in the freezer. About 227 calories per bowl."},
+
+{name:"Garden Frittata",cat:["Breakfast","Quick","Vegetarian"],time:"25 min",serves:"4",
+ing:["2 tbsp butter","1 cup diced veggies (fresh or frozen)","8 eggs (1 egg per inch of pan width)","¼ cup whole milk","⅓ cup grated cheese"],
+steps:["Preheat oven to 190°C (375°F).","Melt butter in an oven-proof pan. Add veggies and cook 5 min until soft.","Whisk eggs and milk, pour into the pan.","Cover and cook on medium-low about 5 min, until almost set.","Top with cheese and put the pan in the oven uncovered 5–10 min, until the middle is set and a toothpick comes out clean."],
+tip:"Use an oven-safe pan (no plastic handle)."},
+
+{name:"Gourmet Macaroni & Cheese",cat:["Mains","Pasta","Zak"],time:"1 hr 10 min",serves:"6",source:"https://www.bestofbridge.com/gourmet-macaroni-cheese/",
+ing:["2½ cups macaroni","¼ cup butter","¼ cup flour","2 cups milk","1 tsp salt","1 tsp sugar","250 g processed cheese (Velveeta / Kraft block), cubed","⅔ cup sour cream","1⅓ cups cottage cheese","2 cups grated aged cheddar","1½ cups soft breadcrumbs","2 tbsp butter (for topping)","Paprika"],
+steps:["Cook and drain the macaroni. Put in a greased 2.5 L baking dish.","Melt butter on medium, stir in flour. Add milk and stir all the time until thick.","Add salt, sugar and processed cheese, mix well. Mix in sour cream and cottage cheese. Pour over the macaroni and mix.","Sprinkle cheddar and breadcrumbs on top. Dot with small pieces of butter and sprinkle paprika.","Bake at 180°C for 45–50 minutes."],
+notes:"Can be frozen before baking."},
+
+{name:"Greek Olive Pasta Salad",cat:["Salads","Pasta","Vegetarian"],time:"35 min",serves:"6",source:"https://www.halfbakedharvest.com/greek-olive-pasta-salad/",
+ing:["# Greek dressing","¼ cup extra virgin olive oil","3 tbsp lemon juice","3 tbsp red wine vinegar","2 tbsp tahini or mayo","2 tsp Dijon mustard","2 tsp honey","Salt and black pepper","# Salad","2 shallots, thinly sliced","½ cup mixed fresh herbs (basil, oregano, dill)","2 tbsp pine nuts","Chili flakes","¼ cup extra virgin olive oil","450 g short pasta","¾ cup mixed Greek olives, pitted","2 bell peppers, chopped","1 cup chopped cucumber","1 cup cherry tomatoes, halved","1 cup canned chickpeas, drained","¼ cup sliced pepperoncini","225 g feta, crumbled"],
+steps:["Dressing: put everything in a jar and whisk until smooth. Taste for salt and pepper.","Put shallots, pine nuts, herbs and chili flakes in a large bowl. Heat the olive oil in a small pan until it sizzles and pour it over the shallots.","Boil the pasta in salted water until al dente. Drain and add to the bowl.","Add olives, peppers, cucumber, tomatoes, chickpeas and pepperoncini. Pour over the dressing and toss. Add the feta.","Serve warm or cold."],
+notes:"About 550 calories per serving. Great with BBQ."},
+
+{name:"Greek Salad",cat:["Salads","Vegetarian","Quick"],time:"15 min",serves:"4",source:"https://www.loveandlemons.com/greek-salad/",
+ing:["# Dressing","¼ cup extra virgin olive oil","3 tbsp red wine vinegar","1 garlic clove, minced","½ tsp dried oregano + more to sprinkle","¼ tsp Dijon mustard","¼ tsp salt","Black pepper","# Salad","1 cucumber, halved, seeds removed, sliced","1 green bell pepper, in 2–3 cm pieces","2 cups cherry tomatoes, halved","150 g feta (in brine is best), cubed","⅓ cup thinly sliced red onion","⅓ cup pitted Kalamata olives","⅓ cup fresh mint leaves"],
+steps:["Whisk all the dressing ingredients in a small bowl.","Arrange cucumber, pepper, tomatoes, feta, onion and olives on a big plate.","Drizzle with dressing and toss very gently. Sprinkle oregano and top with mint."]},
+
+{name:"Turkey & Cheddar Muffins",cat:["Baking","Zak"],time:"45 min",serves:"12 muffins",source:"https://www.food.com/recipe/ham-and-cheddar-muffins-166343",
+ing:["¼ cup butter","½ cup onion, minced","2 cups flour","1 tbsp baking powder","1 tsp salt","¼ tsp pepper","½ tsp garlic powder","2 eggs","1 cup milk","1 tsp Dijon mustard","1 cup diced turkey or chicken ham (NO pork)","1 cup sharp cheddar, grated or diced"],
+steps:["Preheat oven to 190°C and grease 12 muffin cups.","Cook the onion in butter until soft.","In one bowl mix flour, baking powder, salt, pepper and garlic powder.","In another bowl mix eggs, milk and mustard. Add the onion, turkey and cheese.","Stir the wet mix into the dry mix just until moistened. Don't over-mix!","Spoon into the muffin cups and bake 25–30 minutes."],
+notes:"Original recipe uses pork ham. Use turkey or chicken ham.",
+tip:"Good for Zak's lunchbox. Freeze extras."}
+);
+
+R.push(
+{name:"Homemade Bolognese (Pappardelle)",cat:["Mains","Pasta"],time:"1 hr 20 min",serves:"8",source:"https://www.spendwithpennies.com/homemade-bolognese-sauce/",
+ing:["4 tbsp olive oil","6 garlic cloves, crushed","1 onion, finely diced","2 carrots, finely diced","2 celery sticks, finely diced","900 g minced beef (all beef, NO pork)","2½ cups beef stock","2 cups whole milk","2 cans (800 g each) whole tomatoes with juice","8 tbsp tomato paste","2 tsp Italian seasoning","2 bay leaves","2 tsp salt","1 tsp black pepper","Pappardelle or tagliatelle to serve","Parmesan to serve"],
+steps:["Cook the onion in oil on medium heat 3–4 min until it starts to soften. Add garlic, carrot and celery and cook 5 more min.","Add the beef and brown until no pink remains. Drain the fat.","Add the beef stock and simmer until it evaporates, 7–9 min. Add the milk and simmer until it evaporates, 6–7 min.","Stir in tomato paste, Italian seasoning, tomatoes with juice and bay leaves. Break the tomatoes up with a spoon. Cover and simmer 30 min until thick. Season with salt and pepper.","Meanwhile cook the pasta. Keep 1½ cups pasta water.","Toss the pasta with the sauce, adding pasta water if too thick. Serve with parmesan."],
+notes:"Original uses part pork and red wine. Use all beef and beef stock. Sauce keeps 4 days in the fridge or 2–3 months in the freezer. About 360 calories per serving (sauce).",
+tip:"Make a double batch and freeze half for a quick dinner later."},
+
+{name:"Beef Lasagna with Bechamel",cat:["Mains","Pasta"],time:"2 hr 30 min",serves:"12",source:"https://www.allrecipes.com/recipe/23600/worlds-best-lasagna/",
+ing:["# Meat sauce","800 g lean minced beef (no pork sausage)","1 cup minced onion","3 garlic cloves, crushed","2 cans (800 g each) crushed tomatoes","2 small cans (170 g each) tomato paste","1 cup water or chicken stock","2 tbsp sugar","3 tsp dried basil","1 tsp fennel seeds","2 tsp Italian seasoning","1½ tsp salt (divided)","¼ tsp black pepper","4 tbsp chopped fresh parsley","# Bechamel","4 tbsp butter","4 tbsp flour","4 cups milk","# Assembly","12 lasagna sheets","340 g mozzarella, sliced","Parmesan for the top"],
+steps:["In a big pot, cook the beef, onion and garlic on medium until well browned.","Add crushed tomatoes, tomato paste and water/stock. Season with sugar, basil, fennel, Italian seasoning, 1 tsp salt, pepper and 2 tbsp parsley. Cover and simmer about 1½ hours, stirring sometimes.","Boil the lasagna sheets in salted water 8–10 min. Drain and rinse with cold water.","Make the Bechamel Sauce (see its recipe) in another pot.","Preheat oven to 190°C.","In a 23×33 cm dish: 1½ cups meat sauce → 6 sheets → half the bechamel → ⅓ of the mozzarella. Repeat. Top with the rest of the mozzarella and parmesan.","Cover with foil (not touching the cheese). Bake 25 min, remove foil, bake 25 min more.","Cool 15 minutes before cutting."],
+notes:"Original uses Italian pork sausage. Use all beef. About 450 calories per serving.",
+tip:"Start the sauce early: it needs 1½ hours. Can be assembled the day before."},
+
+{name:"Lebanese Fattoush Salad",cat:["Salads","Arabic","Vegetarian"],time:"35 min",serves:"4",source:"https://www.mamaslebanesekitchen.com/salads/fattoush-salad-recipe/",
+ing:["450 g tomatoes","225 g small (Persian) cucumbers","½ bunch spring onions","½ bunch fresh mint","½ bunch flat-leaf parsley","¼ bunch red radish","15 romaine lettuce leaves","½ large green pepper","½ cup purslane leaves (optional)","1–2 garlic cloves","1 tbsp sumac","¼ cup pomegranate molasses","¼ cup fresh lemon juice","2 Lebanese pita / khobez","¼ cup olive oil","½–1 tsp salt"],
+steps:["Wash all the veggies well in cold water (can soak a few minutes in water with a cup of white vinegar).","Split the bread, sprinkle with a little sumac and olive oil, cut into 2–3 cm squares and toast in the oven at 200°C for 3–5 min until light brown. Set aside.","Chop tomatoes into 2–3 cm chunks. Slice cucumbers into thick discs. Slice spring onions.","Mint and parsley: remove stems, cut leaves in halves or thirds (not too small).","Slice radish thinly. Chop green pepper small. Cut lettuce into 3–5 cm pieces.","Crush the garlic with a pinch of salt.","JUST BEFORE SERVING: put all veggies in a bowl, add garlic, pomegranate molasses, lemon juice, sumac and salt. Mix well.","Add the toasted bread and mix gently. Add the olive oil last, mix gently and serve."],
+tip:"Mix only right before eating, or the bread gets soggy."},
+
+{name:"Lebanese Mujadara (Rice & Lentils)",cat:["Mains","Arabic","Vegetarian"],time:"45 min",serves:"8",source:"https://feelgoodfoodie.net/recipe/mujadara/",
+ing:["1 cup long-grain or basmati rice, rinsed","4½ cups water (+ more for soaking the rice)","½ cup olive oil","2 large onions, thinly sliced","2 cups brown lentils, rinsed","1 tsp salt","2 tsp cumin","Cucumber yogurt to serve"],
+steps:["Cover the rice with cold water in a bowl and leave to soak.","Put two paper towels on a plate. Heat the olive oil in a large pot on high. Fry the onions, stirring all the time, until deep brown and crispy at the edges, about 20 min. Lift out with a slotted spoon onto the plate. KEEP the oil.","Put the lentils and water in another pot. Boil, then lower to medium-low, cover and cook 15 min.","Drain and rinse the rice, add to the lentils with the salt. Stir once, cover and cook 15 min without opening.","Take off the heat and rest 5 min, covered. Add cumin and fluff with a fork.","Pour the saved onion oil on top, then the crispy onions. Serve warm with cucumber yogurt."],
+tip:"Don't lift the lid while the rice cooks."},
+
+{name:"Olivier Salad (Russian Potato Salad)",cat:["Salads","Sides"],time:"1 hr",serves:"10",source:"https://valentinascorner.com/olivier-salad-recipe-russian-potato-salad/",
+ing:["3 potatoes","3 carrots","3 eggs","3 dill pickles, cubed (+ a little pickle juice)","1 small sweet onion, cubed","1 cup frozen peas","½ cup mayonnaise","½ cup sour cream","1 tsp mustard","Fresh dill","Salt and pepper","½ tsp sugar (optional)"],
+steps:["Put potatoes and carrots in a big pot, cover with water and boil 20–25 min until a knife goes through easily. Don't overcook. Take out and cool.","Boil the eggs 8–10 min. Cool and peel.","Cube everything the same small size.","Mix mayo, sour cream, mustard and a little pickle juice.","Combine everything and add dressing to taste. Season with salt, pepper and sugar. Add fresh dill and mix."],
+tip:"Let the potatoes cool completely before mixing so they don't go mushy."}
+);
+
+R.push(
+{name:"Peanut Udon",cat:["Mains","Asian","Quick"],time:"15 min",serves:"3",
+ing:["3 portions udon noodles","3 tbsp peanut butter","2 tbsp soy sauce","1½ tsp sugar","2½ tsp toasted sesame oil","2 tsp chili crisp oil","1 heaped tsp grated garlic","1 garlic clove, finely chopped","¼ cup hot udon cooking water (saved)","Big handful bok choy","Spring onion and sesame seeds (optional)"],
+steps:["Cook the udon as the packet says. Save ¼ cup of the water. Drain and rinse under cold water.","Mix all the sauce ingredients in a bowl. Add the saved water 1 tbsp at a time until smooth.","Fry the bok choy in a pan until tender, about 5 min.","Mix udon, sauce and bok choy in the pan on medium heat for 2 minutes.","Top with spring onion and sesame seeds."]},
+
+{name:"Penne with Spicy Tomato Cream Sauce",cat:["Mains","Pasta"],time:"25 min",serves:"4",source:"http://www.grouprecipes.com/78812/penne-with-spicy-vodka-tomato-cream-sauce.html",
+ing:["¼ cup extra virgin olive oil","3 beef or chicken sausages (NO pork), casing removed","4 garlic cloves, minced","½–1 tsp chili flakes (to taste)","1 can (800 g) crushed tomatoes","½ tsp salt","450 g penne, cooked and drained","2 tbsp vodka (optional, can skip)","½ cup cooking cream","¼ cup chopped fresh basil","⅓ cup grated parmesan"],
+steps:["Heat oil in a large pan on medium. Add the sausage meat and break it up while it browns.","Add garlic and chili flakes and cook until the garlic is golden. Don't let the garlic burn, it gets bitter.","Add tomatoes and salt, bring to a boil, then simmer 15 minutes.","Add vodka (if using), cream and parmesan and bring to a boil. Lower the heat, add the pasta and toss 1 minute.","Stir in basil and serve."],
+notes:"Original uses pork Italian sausage. Use beef or chicken sausage."},
+
+{name:"Sautéed Asparagus and Peas",cat:["Sides","Vegetarian","Quick"],time:"15 min",serves:"4",source:"https://www.onceuponachef.com/recipes/sauteed-asparagus-and-peas.html",
+ing:["2 tbsp unsalted butter","¼ cup minced shallots","1 bunch thin asparagus, ends trimmed, cut diagonally in 4 cm pieces","1 cup frozen peas, thawed","Salt and black pepper","1 tsp honey"],
+steps:["Melt butter in a pan on medium-low. Cook shallots, stirring often, 4–5 min until soft.","Add asparagus, ¼ tsp salt and pepper. Cook, stirring often, about 5 min until tender but still crisp.","Add peas and honey and cook 1 more minute. Taste for salt and pepper and serve."]},
+
+{name:"Savoury Veggie Muffins",cat:["Baking","Zak","Vegetarian"],time:"30 min",serves:"about 8 muffins",
+ing:["1 cup plain flour","2 tsp baking powder","½ tsp salt","Pinch black pepper","⅓ cup grated carrot","¼ cup finely chopped broccoli tops","¼ cup corn","1 egg","½ cup milk","¼ cup melted butter","½ cup grated cheddar"],
+steps:["Mix flour, baking powder, salt and pepper.","Add egg, milk and melted butter and mix.","Add the cheese and veggies.","Divide into a greased muffin pan.","Bake at 175°C (350°F) for 20 minutes."],
+tip:"Good lunchbox snack. Freeze extras."},
+
+{name:"Savoury Broccoli Cheese Waffles",cat:["Breakfast","Zak","Vegetarian"],time:"15 min",serves:"2–3 waffles",
+ing:["½ cup flour","¼ cup parmesan","¼ cup cheddar","1 egg","¼ cup water","½ cup chopped broccoli or spinach","½ tsp garlic salt","½ tsp onion powder"],
+steps:["Chop the broccoli into tiny pieces.","Mix the dry ingredients in a bowl, then mix in the water and egg.","Add the cheese and broccoli.","Spray the waffle maker with oil and spoon in the mixture.","Cook about 7 min until golden brown. Cool a little before serving."]},
+
+{name:"Shakreye (Beef in Yogurt)",cat:["Mains","Arabic"],time:"1 hr 30 min",serves:"6",
+ing:["1.5 kg FULL-FAT yogurt","1 kg beef in small cubes","4 eggs","2 garlic cloves, minced","1 medium onion","2 bay leaves","1 tsp ground cloves","1 tsp cinnamon","1 tsp cardamom","2 tsp dried mint","2 tsp saffron","Chicken or beef stock","Salt and pepper"],
+steps:["Dice the onion small and put it in a pot.","Add the beef on medium-high with cinnamon, cardamom, cloves, salt and pepper.","When the beef is browned, add 1 litre of water with stock and the bay leaves. Cook until the meat is tender.","Whisk the COLD yogurt with the eggs in a big bowl.","Put the yogurt in a separate pot on medium heat and add the garlic.","When the yogurt is hot, add the broth from the meat (about the same amount as the yogurt).","When combined and cooked together, add the meat, dried mint and saffron. Simmer 10 minutes."],
+notes:"Use full-fat yogurt only, never low-fat. NEVER put a lid on the pot while the yogurt is bubbling.",
+tip:"Stir the yogurt all the time in ONE direction while it heats so it doesn't split. Serve with vermicelli rice."},
+
+{name:"Creamy Broccoli Cheddar Chicken & Rice",cat:["Mains","Zak"],time:"35 min",serves:"4",source:"https://www.halfbakedharvest.com/broccoli-cheddar-chicken-rice/",
+ing:["1 tbsp olive oil","Salt and black pepper","225–450 g chicken breast, cubed","1 onion, chopped","2 tbsp salted butter","2 tbsp fresh thyme leaves","½ tsp garlic powder","½ tsp paprika","¼ tsp cayenne (or to taste)","1½ cups basmati rice","½ cup broken spaghetti or orzo","3 cups low-sodium chicken stock","3 cups broccoli florets, roughly chopped","¾ cup whole milk","1 cup grated cheddar"],
+steps:["In a large pot on medium, cook oil, chicken and onion about 5 min. Season with salt and pepper. Add butter, thyme, garlic powder, paprika and cayenne.","Stir in the rice and pasta and toast 2–3 min until golden.","Add the stock and bring to a boil on high. Add broccoli and a big pinch of salt and pepper. Boil, then cover and turn to low. Cook 20–25 min until the rice is cooked.","Stir in the milk, then the cheese. Take off the heat and stir until creamy. Serve with extra thyme and pepper."],
+notes:"About 620 calories per serving.",
+tip:"One-pot meal."}
+);
+
+R.push(
+{name:"Spinach, Beef & Rice (Sabanekh)",cat:["Mains","Arabic"],time:"1 hr 15 min",serves:"8",source:"https://www.food.com/recipe/linas-awesome-lebanese-spinach-beef-rice-419495",
+ing:["Olive oil","1 medium onion, diced","450 g minced beef","1½ tsp allspice","1 tsp paprika","½ tsp cinnamon","Salt","3 packs (285 g each) frozen chopped spinach, thawed and squeezed dry","Water + 1 chicken or vegetable stock cube","1 tsp chili flakes","3 garlic cloves, finely diced","1 bunch fresh coriander (cilantro), chopped","Lemon juice","Cooked rice to serve"],
+steps:["Heat olive oil in a pot. Fry the onion, then add the beef and cook until brown.","Add allspice, cinnamon, paprika and salt and mix.","Add the spinach and stir with the meat.","Add water JUST to cover the spinach, plus the chili flakes and stock. Cover, bring to a boil, then lower to medium and simmer 30 minutes.","Meanwhile, in a small pan fry the garlic and coriander in olive oil.","Add the garlic-coriander to the spinach after the 30 minutes. Cover and simmer 15 more minutes.","Serve with rice and squeeze lemon juice on top."],
+notes:"Frozen chopped spinach works better than fresh. Don't add too much water: the spinach releases water too. The lemon on top at the end is the most important part!"},
+
+{name:"Stir Fry Noodles with Chicken",cat:["Mains","Asian","Quick"],time:"25 min",serves:"4",source:"https://www.dinneratthezoo.com/stir-fry-noodles/",
+ing:["1 tbsp vegetable oil","340 g chicken breast, thinly sliced","280 g fresh egg noodles, pre-cooked","½ cup julienned carrots","2 cups chopped bok choy","½ cup red bell pepper, thinly sliced","1 tsp garlic, minced","½ tsp ginger, minced","# Sauce","¼ cup chicken stock","2 tbsp hoisin sauce","2 tbsp soy sauce","1 tbsp sesame oil","2 tsp cornstarch","¼ cup sliced spring onion (green part)","Salt and pepper"],
+steps:["Heat the oil in a large pan on medium-high.","Add the chicken with salt and pepper. Cook 3–4 min per side until golden. Take out of the pan.","Add carrots, bok choy and red pepper. Cook 4–5 min until just soft.","Add garlic and ginger for 30 seconds.","Add the noodles and the chicken back in and toss.","Whisk the stock, hoisin, soy sauce, sesame oil and cornstarch in a small bowl.","Pour the sauce in and simmer 1 minute until it thickens. Sprinkle spring onion and serve."],
+notes:"About 336 calories per serving."},
+
+{name:"Super Berry Acai Bowl",cat:["Breakfast","Quick"],time:"5 min",serves:"1",source:"https://simple-veganista.com/super-berry-acai-bowl/",
+ing:["1 cup frozen mixed berries","1 large banana, sliced and frozen","1 tbsp acai powder or 1 packet frozen acai","¾–1 cup milk or water","1 tbsp nut butter (optional)","# Toppings","Fresh berries and fruit","Granola","Toasted coconut","Chia seeds"],
+steps:["Blend berries, banana, acai, nut butter and milk until smooth. Add a little more liquid only if needed. It should be thick.","Pour into a bowl and add toppings."]},
+
+{name:"Sweet & Smoky Roasted Carrots",cat:["Sides","Vegetarian"],time:"50 min",serves:"6",source:"https://food52.com/recipes/78083-sweet-smoky-roasted-carrots",
+ing:["¼ cup apple cider vinegar","1 tbsp smoked paprika","1½ tsp fine salt","1¼ tsp ground cumin","¼ tsp cayenne (or more)","3 tbsp olive oil","2 tbsp honey","900 g carrots, scrubbed, trimmed and dried","½ cup plain Greek yogurt"],
+steps:["Preheat oven to 220°C. Line a tray with baking paper.","Whisk vinegar, paprika, salt, cumin and cayenne. Whisk in oil and honey.","Put carrots on the tray, pour over about ⅓ cup of the spice syrup and coat well. Keep the rest of the syrup.","Roast 20 min, flip, then 20–30 min more until tender and browned.","Stir 1 tbsp of the leftover syrup into the yogurt (more to taste).","Serve carrots with the yogurt sauce on top or underneath."],
+notes:"Carrots can be made 6 hours ahead; yogurt sauce 2 days ahead."},
+
+{name:"Tabbouleh",cat:["Salads","Arabic","Vegetarian"],time:"30 min",serves:"4–6",
+ing:["1 cup fine bulgur","2 bunches curly parsley","12 large mint leaves","5 spring onions","3 medium tomatoes","½ cucumber","2 lemons, juiced","½ cup olive oil","Salt and pepper"],
+steps:["Put the bulgur in a bowl, cover with 2–3 cm of water (it doubles in size) and leave at least 20 min.","Wash and DRY the parsley and mint well. Remove stems, chop finely, put in a big bowl.","Peel and deseed the cucumber, chop small. Chop spring onion and tomato. Add to the herbs.","Squeeze all the water out of the bulgur and add to the veggies.","Add lemon juice, olive oil, salt and pepper. Mix, taste, and adjust."],
+tip:"Herbs must be completely dry before chopping, or they go mushy. Use a very sharp knife."},
+
+{name:"Tomato and Burrata Gnocchi",cat:["Mains","Pasta","Vegetarian","Quick"],time:"30 min",serves:"4",source:"https://somuchfoodblog.com/tomato-and-burrata-gnocchi/",
+ing:["450 g gnocchi","450 g ripe tomatoes, quartered","2 tbsp olive oil","4 garlic cloves, finely minced","2 tbsp tomato paste","½ tsp chili flakes","¼ cup cooking cream","225 g burrata, torn","Parmesan","Fresh basil"],
+steps:["Heat olive oil in a large pan on medium. Add tomatoes with salt and pepper. Cook 10–15 min, stirring sometimes, until broken down.","Add tomato paste, garlic and chili and cook 3–4 min. Add cream and simmer on low. Season.","Boil the gnocchi in salted water 2–4 min, until they float. Lift into the sauce with a slotted spoon and toss.","Put the burrata pieces on top, sprinkle parmesan and basil. Simmer 5 min until the burrata melts. Serve right away."]}
+);
+
+R.push(
+{name:"Tomato Rice Soup",cat:["Soups","Vegetarian"],time:"40 min",serves:"6",
+ing:["1 onion, chopped","1 green pepper, chopped","Oil","2 tbsp flour","3 litres cold water","1 tsp marjoram","1 tsp cumin","1 tbsp sugar","Salt and pepper","½ cup rice","1 can chopped tomatoes","2 tbsp tomato purée"],
+steps:["Fry the onion in oil, add the flour and stir until it turns pinkish.","Add 3 litres of cold water.","Add marjoram, cumin, sugar, salt and pepper.","When it boils, add the rice. Keep stirring so it doesn't stick to the bottom.","When the rice is cooked, add the chopped tomatoes, tomato purée and green pepper. Cook a few more minutes."]},
+
+{name:"Tuna Pasta Casserole",cat:["Mains","Pasta","Fish"],time:"45 min",serves:"6",source:"http://www.cyber-kitchen.com/recipes/TickleMeElbows.htm",
+ing:["225 g elbow macaroni (about 2 cups dry)","1 can (170 g) tuna in water, drained","1 cup sliced celery","⅓ cup chopped spring onion","¼ cup diced green pepper","¼ cup diced roasted red pepper (pimento)","1 can (300 g) reduced-fat cream of celery soup","½ cup low-fat milk","1 cup grated reduced-fat cheddar","½ cup light mayonnaise","¼ tsp black pepper"],
+steps:["Cook the macaroni, drain, rinse with cold water and drain again.","In a big bowl mix macaroni, tuna, celery, spring onion, green pepper and red pepper.","In a pot, heat the soup and milk on medium until smooth. Add cheese and stir until melted. Take off the heat and stir in mayo and pepper.","Pour the sauce over the macaroni and mix well.","Put in a greased 1.5 L baking dish. Bake uncovered at 180°C for 30 min."],
+notes:"About 280 calories per serving."},
+
+{name:"Veggie, Lentil & Orzo Soup",cat:["Soups","Vegetarian"],time:"40 min",serves:"6",
+ing:["2 tsp oil or butter","1 cinnamon stick","1 bay leaf","1 cup onion, finely chopped","2 garlic cloves","2 zucchini, chopped","4 carrots, chopped","1 can (400 g) diced tomatoes","1 can (400 g) lentils (or cannellini beans), rinsed","1 cup orzo","1 tsp dried basil","1 tsp ground pepper","½ tsp cayenne","1½ tsp salt","1 tsp caraway seeds","Parmesan and bread to serve"],
+steps:["Heat oil in a deep pot. Add cinnamon stick and bay leaf. When they sizzle, add onion and garlic and cook a few min until soft.","Meanwhile, boil the orzo in salted water 6–7 min. Drain and set aside.","Add zucchini and carrots to the onions with salt and pepper and cook a couple of minutes.","Add the tomatoes, cayenne, basil and caraway. Cover and cook 5 min.","Rinse the lentils and add them with the orzo and about 2 cups of water. Cover and cook 15 min. Taste for salt.","Serve with parmesan and bread."]},
+
+{name:"Veggie-Loaded Orzo with Sausage",cat:["Mains","Pasta"],time:"30 min",serves:"2 (double for family)",source:"https://www.hellofresh.com/recipes/veggie-loaded-orzo-and-sausage-5b4f732dae08b526114d0cb6",
+ing:["Small bunch parsley","2 garlic cloves","1 red onion","120 g cherry tomatoes","1 zucchini","1 bell pepper","250 g beef or chicken sausage (NO pork)","170 g orzo","¼ cup parmesan","Juice of 1 lemon","2 tsp olive oil","Salt and pepper"],
+steps:["Boil a big pot of salted water. Chop parsley, mince garlic, chop onion, halve tomatoes, slice zucchini into half-moons, slice the pepper. Take sausage out of casings.","Heat oil in a big pan on medium-high. Brown the sausage 4–5 min. Lift out with a slotted spoon, leave the fat in the pan.","Add more oil, then onion and zucchini. Cook 5–6 min until soft. Season.","Cook the orzo in the boiling water 7–9 min. Save ¼ cup of pasta water, then drain.","Add pepper and garlic to the pan, cook 2–4 min. Add tomatoes for 1–2 min.","Add orzo and sausage. Stir in half the parmesan, lemon juice and a splash of pasta water. Season.","Serve with parsley and the rest of the parmesan."],
+notes:"Original uses pork sausage. Use beef or chicken sausage."},
+
+{name:"Lemon Lentil Soup (Adas bi Hamod)",cat:["Soups","Arabic","Vegetarian"],time:"45 min",serves:"8",source:"https://www.mamaslebanesekitchen.com/soups/lemon-lentils-soup/",
+ing:["1 cup lentils, rinsed","4 large Swiss chard leaves, thinly chopped (about 4 cups)","1 cup fresh lemon juice","6–8 garlic cloves, crushed","4 large potatoes, in 4 cm cubes","1 tbsp salt","8 cups water","½ cup olive oil"],
+steps:["Boil the lentils in the water on medium heat.","5–7 min after it boils, add all the other ingredients. Lower the heat and cook about 30 min, stirring sometimes.","It's ready when the lentils are soft. Taste and adjust garlic, salt and lemon."],
+notes:"Can use a whole bunch of chard for more veggies. If no chard, use red chard or leek."},
+
+{name:"Best Hummus",cat:["Sides","Arabic","Vegetarian"],time:"30 min",serves:"about 2 cups",source:"https://cookieandkate.com/best-hummus-recipe/",
+ing:["1 can (400 g) chickpeas, rinsed and drained","½ tsp baking soda","¼ cup lemon juice (1½–2 lemons)","1 garlic clove, roughly chopped","½ tsp fine salt","½ cup tahini","2–4 tbsp ICE water","½ tsp ground cumin","1 tbsp olive oil","To garnish: olive oil, sumac or paprika, parsley"],
+steps:["Put chickpeas and baking soda in a pot, cover with lots of water and boil about 20 min until very soft and the skins fall off. Drain and rinse with cool water.","Meanwhile blend lemon juice, garlic and salt. Let it rest 10 min.","Add tahini and blend until thick and creamy, scraping the sides.","With the blender running, add 2 tbsp ice water. Blend until very smooth and pale.","Add cumin and the chickpeas. While blending, drizzle in olive oil. Blend about 2 min until super smooth. Add more ice water if needed.","Taste: usually add ¼ tsp more salt and 1 tbsp more lemon.","Spread in a bowl with swirls on top and garnish."],
+notes:"Keeps 1 week in the fridge.",
+tip:"Over-cooking the chickpeas with baking soda makes it super smooth. No need to peel them."}
+);
+
+R.push(
+{name:"Homemade Chicken Nuggets",cat:["Mains","Zak","Quick"],time:"30 min",serves:"2–3",fromChat:true,
+ing:["200 g chicken breast","1 sprig fresh rosemary (leaves only)","1 garlic clove","2 slices bread, torn in bite-size pieces","60 g cream cheese","60 ml milk","Salt","# To coat","1–2 eggs, beaten","Breadcrumbs","A little oil for frying"],
+steps:["Blend the chicken with the rosemary.","Add the bread pieces and all the other ingredients. Blitz until it becomes a paste.","Shape into nuggets (wet hands help).","Roll each nugget in egg, then in breadcrumbs.","Fry in a little oil until golden on both sides and cooked inside."],
+tip:"Freeze extra nuggets uncooked on a tray, then put in a bag. Fry from frozen on lower heat."},
+
+{name:"Banana Bread",cat:["Baking","Breakfast","Zak"],time:"1 hr 15 min",serves:"1 loaf",fromChat:true,video:"https://vt.tiktok.com/ZSPFk3MuJ/",
+ing:["3 ripe bananas","2 eggs","½ cup melted butter","½ cup brown sugar","½ cup white sugar","1 tsp vanilla","½ cup milk","# Dry bowl","1½ cups flour","Pinch of salt","1 tsp baking soda","1 tsp baking powder","1 tsp cinnamon"],
+steps:["Preheat oven to 180°C (355°F). Grease a loaf tin.","In a big bowl, mash the bananas. Mix in eggs, melted butter, brown sugar, white sugar, vanilla and milk.","In another bowl mix flour, salt, baking soda, baking powder and cinnamon.","Add the dry mix to the wet mix and stir just until combined.","Pour into the tin and bake 45–60 min, until a toothpick in the middle comes out clean."],
+notes:"From Owen's comment on the TikTok: he baked it 60 min. Start checking at 45 min."},
+
+{name:"Green Pea Stew (Bazella)",cat:["Mains","Arabic"],fromChat:true,video:"https://vt.tiktok.com/ZSQVbtqfn/",videoOnly:true,
+notes:"Follow the TikTok video for this one."},
+
+{name:"Okra Stew with Meat (Bamia)",cat:["Mains","Arabic"],time:"2 hr",serves:"6",fromChat:true,video:"https://vt.tiktok.com/ZSqjoBKAb/",
+ing:["1 kg lamb shank or beef (any meat you like)","1 kg frozen okra (do not fry it)","1 onion, finely chopped","1 bunch fresh coriander, chopped","2 tbsp crushed garlic","1 litre tomato juice (or tomato sauce, or about 5 fresh tomatoes, chopped)","4 cups meat broth","Olive oil","Salt","Lemon juice to taste"],
+steps:["Boil the meat in water with a little salt, skimming off the foam, until tender (about 1–1½ hours). Keep 4 cups of the broth.","In a big pot, heat some olive oil and fry the onion until soft and golden.","Add the garlic and half the coriander and stir 1–2 minutes until it smells good.","Add the cooked meat, the tomato juice and the 4 cups of broth. Bring to a boil.","Add the frozen okra straight from the freezer (no frying). Season with salt.","Lower the heat and simmer 20–30 minutes until the okra is soft and the sauce thickens a little.","Stir in the rest of the coriander and lemon juice to taste. Serve with vermicelli rice."],
+tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok if unsure."}
+);
+
+(function(){
+  function slug(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+  R.forEach(function(r){r.id=slug(r.name);r.ing=r.ing||[];r.steps=r.steps||[];});
+  R.sort(function(a,b){return a.name.localeCompare(b.name)});
+  var ORDER=["All","Favourites","Mains","Pasta","Arabic","Salads","Sides","Soups","Breakfast","Baking","Zak","Quick","Vegetarian","Asian","Fish","Sauces & Basics"];
+  var LABEL={"Zak":"For Zak","Quick":"Quick (under 30 min)"};
+  var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+  var favs=store.get("fav",[]);
+  var state={q:"",cat:store.get("cat","All")};
+  var app=document.getElementById("app");
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function isFav(id){return favs.indexOf(id)>-1}
+  function inCat(r,c){return c==="All"||(c==="Favourites"?isFav(r.id):r.cat.indexOf(c)>-1)}
+  function matches(r,q){if(!q)return true;q=q.toLowerCase();return (r.name+" "+r.cat.join(" ")+" "+r.ing.join(" ")).toLowerCase().indexOf(q)>-1}
+
+  function renderList(){
+    var cats=ORDER.filter(function(c){return c==="All"||c==="Favourites"||R.some(function(r){return r.cat.indexOf(c)>-1})});
+    if(cats.indexOf(state.cat)<0)state.cat="All";
+    var h='<header class="top"><h1>Crowhurst Family Recipes</h1><p>Our favourite recipes in one place. Tap a recipe to open it. Tap ingredients and steps to tick them off while you cook.</p></header>';
+    h+='<div class="search"><label for="q" class="sr" style="position:absolute;left:-9999px">Search recipes</label><input id="q" type="search" placeholder="Search dish or ingredient" value="'+esc(state.q)+'" autocomplete="off">';
+    h+='<div class="chips" role="toolbar" aria-label="Categories">'+cats.map(function(c){var n=R.filter(function(r){return inCat(r,c)}).length;return '<button class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+esc(c==="Favourites"?"★ Favourites":(LABEL[c]||c))+'<span class="n">'+n+'</span></button>'}).join("")+'</div></div>';
+    h+='<div id="results"></div>';
+    h+='<footer>'+R.length+' recipes. ★ Favourites are saved on this phone only.</footer>';
+    app.innerHTML=h;
+    var q=document.getElementById("q");
+    q.addEventListener("input",function(){state.q=q.value;renderResults()});
+    app.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.cat=b.dataset.cat;store.set("cat",state.cat);app.querySelectorAll(".chip").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderResults()})});
+    renderResults();
+  }
+  function renderResults(){
+    var list=R.filter(function(r){return inCat(r,state.cat)&&matches(r,state.q)});
+    var el=document.getElementById("results");
+    if(!list.length){el.innerHTML='<p class="empty">'+(state.cat==="Favourites"&&!state.q?"No favourites yet. Open a recipe and tap ★ Favourite.":"No recipe matches “"+esc(state.q)+"”. Try another word.")+'</p>';return}
+    el.innerHTML='<p class="count">'+list.length+(list.length===1?" recipe":" recipes")+'</p><ul class="list">'+list.map(function(r){
+      var tags=[];if(isFav(r.id))tags.push('<span class="tag fav">★</span>');if(r.video)tags.push('<span class="tag vid">▶ Video</span>');
+      var meta=[r.cat.slice(0,2).map(function(c){return LABEL[c]&&c!=="Quick"?LABEL[c]:c}).join(" · ")];if(r.time)meta.push(r.time);
+      return '<li><a class="row" href="#'+r.id+'"><h3>'+esc(r.name)+'</h3><span class="meta">'+tags.join(" ")+'<span>'+meta.map(esc).join("</span><span>")+'</span></span><span class="go" aria-hidden="true">›</span></a></li>'}).join("")+'</ul>';
+  }
+
+  var wake=null;
+  function releaseWake(){if(wake){try{wake.release()}catch(e){}wake=null}}
+  function renderRecipe(r){
+    releaseWake();
+    var h='<button class="back" id="back">‹ All recipes</button>';
+    h+='<div class="dhead"><h2>'+esc(r.name)+'</h2><div class="facts">';
+    if(r.time)h+='<span class="fact"><b>Time</b>'+esc(r.time)+'</span>';
+    if(r.serves)h+='<span class="fact"><b>Makes</b>'+esc(r.serves)+'</span>';
+    h+='<span class="fact"><b>Type</b>'+esc(r.cat.map(function(c){return LABEL[c]&&c!=="Quick"?LABEL[c]:c}).join(", "))+'</span></div>';
+    h+='<div class="actions">';
+    if(r.video)h+='<a class="btn solid" href="'+esc(r.video)+'" target="_blank" rel="noopener">▶ Watch video</a>';
+    if(r.source&&/^http/.test(r.source))h+='<a class="btn" href="'+esc(r.source)+'" target="_blank" rel="noopener">Original recipe ↗</a>';
+    h+='<button class="btn" id="fav" aria-pressed="'+isFav(r.id)+'">★ Favourite</button>';
+    if("wakeLock" in navigator)h+='<button class="btn" id="wake" aria-pressed="false">Keep screen on</button>';
+    h+='</div></div>';
+    if(r.videoOnly){
+      h+='<div class="note info"><b>How to cook</b>'+esc(r.notes||"Follow the video.")+'</div>';
+    }else{
+      h+='<div class="twocol"><section class="block"><h3>Ingredients <small>tap to tick</small></h3><ul class="ing">'+r.ing.map(function(x,i){
+        return x.charAt(0)==="#"?'<li class="grp">'+esc(x.slice(1).trim())+'</li>':'<li class="it" data-i="'+i+'" role="checkbox" aria-checked="false" tabindex="0"><span class="box" aria-hidden="true">✓</span><span class="tx">'+esc(x)+'</span></li>'}).join("")+'</ul></section>';
+      h+='<section class="block"><h3>Method <small>tap when done</small></h3><ol class="steps">'+r.steps.map(function(s){return '<li role="checkbox" aria-checked="false" tabindex="0"><span class="tx">'+esc(s)+'</span></li>'}).join("")+'</ol>';
+      h+='<p class="hint" style="margin-bottom:8px"><button class="back" id="reset" style="font-size:15px">Clear ticks</button></p></section></div>';
+      if(r.tip)h+='<div class="note tip"><b>Tip for the cook</b>'+esc(r.tip)+'</div>';
+      if(r.notes)h+='<div class="note info"><b>Notes</b>'+esc(r.notes)+'</div>';
+    }
+    if(r.source&&!/^http/.test(r.source))h+='<p class="hint">Recipe by '+esc(r.source)+'</p>';
+    h+='<footer><button class="back" id="back2">‹ All recipes</button></footer>';
+    app.innerHTML=h;window.scrollTo(0,0);
+    function home(){location.hash="";}
+    document.getElementById("back").onclick=home;document.getElementById("back2").onclick=home;
+    document.getElementById("fav").onclick=function(){var i=favs.indexOf(r.id);if(i>-1)favs.splice(i,1);else favs.push(r.id);store.set("fav",favs);this.setAttribute("aria-pressed",isFav(r.id))};
+    var w=document.getElementById("wake");
+    if(w)w.onclick=function(){var b=this;if(wake){releaseWake();b.setAttribute("aria-pressed","false");b.textContent="Keep screen on";return}
+      navigator.wakeLock.request("screen").then(function(l){wake=l;b.setAttribute("aria-pressed","true");b.textContent="Screen stays on ✓";l.addEventListener("release",function(){wake=null;b.setAttribute("aria-pressed","false");b.textContent="Keep screen on"})}).catch(function(){b.textContent="Not available on this phone";b.disabled=true})};
+    app.querySelectorAll('[role="checkbox"]').forEach(function(li){function t(){var d=li.classList.toggle("done");li.setAttribute("aria-checked",d)}li.addEventListener("click",t);li.addEventListener("keydown",function(e){if(e.key===" "||e.key==="Enter"){e.preventDefault();t()}})});
+    var rs=document.getElementById("reset");if(rs)rs.onclick=function(){app.querySelectorAll(".done").forEach(function(x){x.classList.remove("done");x.setAttribute("aria-checked","false")})};
+  }
+  function route(){var id=location.hash.replace(/^#/,"");var r=R.filter(function(x){return x.id===id})[0];if(r)renderRecipe(r);else{releaseWake();renderList()}}
+  window.addEventListener("hashchange",route);route();
+})();
+</script>
+</body>
+</html>
