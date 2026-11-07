@@ -328,13 +328,20 @@ steps:["Boil the meat in water with a little salt, skimming off the foam, until 
 tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok if unsure."}
 );
 
+R.push(
+{name:"Sheet Pan Chicken Fajitas",cat:["Chicken","Mains","Quick"],time:"25 min",serves:"4",source:"https://feelgoodfoodie.net/recipe/sheet-pan-chicken-fajitas/",video:"https://www.instagram.com/p/Da4AR5FgYoe/",
+ing:["700 g (1½ lb) boneless skinless chicken breast, sliced into thick strips","3 bell peppers, sliced into strips","1 red onion, thinly sliced","2 garlic cloves, minced","3 tbsp olive oil","# Seasoning","2 tsp chili powder","1 tsp cumin","1 tsp paprika","½ tsp ground coriander","½ tsp onion powder","½ tsp salt","½ tsp black pepper","# To serve","Flour tortillas","Lime wedges","Fresh coriander (cilantro)","Avocado"],
+steps:["Preheat the oven to 220°C (425°F) and line a large baking tray with baking paper.","Put the chicken, peppers, onion, garlic and olive oil on the baking tray.","Mix the seasoning ingredients in a small bowl, then sprinkle evenly over the chicken and vegetables.","Toss everything together with tongs or your hands to coat evenly, then spread into one even layer.","Bake 15–20 minutes, tossing once halfway, until the chicken is cooked through and the vegetables are tender. In the last 5 minutes, wrap a stack of tortillas tightly in foil and put it on the tray to warm them.","Serve with the warm tortillas, lime juice, coriander and sliced avocado."],
+tip:"One tray, ready in about 25 minutes. Slice the chicken and peppers a similar thickness so they cook evenly."}
+);
+
 (function(){
   function slug(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
   R.forEach(function(r){r.id=slug(r.name);r.ing=r.ing||[];r.steps=r.steps||[];});
   R.sort(function(a,b){return a.name.localeCompare(b.name)});
-  var ORDER=["All","Favourites","Pasta","Arabic","Salads","Sides","Soups","Breakfast","Baking","Zak","Asian","Fish","Sauces & Basics"];
+  var ORDER=["All","Favourites","Chicken","Pasta","Arabic","Salads","Sides","Soups","Breakfast","Baking","Zak","Asian","Fish","Sauces & Basics"];
   var LABEL={"Zak":"For Zak","Quick":"Quick (under 30 min)"};
-  var CATMETA={"Favourites":{ic:"★"},"Mains":{ic:"🍽️"},"Pasta":{ic:"🍝"},"Arabic":{ic:"🥙"},"Salads":{ic:"🥗"},"Sides":{ic:"🥔"},"Soups":{ic:"🍲"},"Breakfast":{ic:"🍳"},"Baking":{ic:"🧁"},"Zak":{ic:"🧒"},"Quick":{ic:"⏱️"},"Vegetarian":{ic:"🥦"},"Asian":{ic:"🍜"},"Fish":{ic:"🐟"},"Sauces & Basics":{ic:"🥣"}};
+  var CATMETA={"Favourites":{ic:"★"},"Chicken":{ic:"🍗"},"Mains":{ic:"🍽️"},"Pasta":{ic:"🍝"},"Arabic":{ic:"🥙"},"Salads":{ic:"🥗"},"Sides":{ic:"🥔"},"Soups":{ic:"🍲"},"Breakfast":{ic:"🍳"},"Baking":{ic:"🧁"},"Zak":{ic:"🧒"},"Quick":{ic:"⏱️"},"Vegetarian":{ic:"🥦"},"Asian":{ic:"🍜"},"Fish":{ic:"🐟"},"Sauces & Basics":{ic:"🥣"}};
   var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
   var favs=store.get("fav",[]);
   var _sc=store.get("cat","");if(_sc==="All")_sc="";
