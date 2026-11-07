@@ -369,7 +369,7 @@ tip:"Fill the squash only three-quarters full and don't pack it tight, so the ri
     var cats=ORDER.filter(function(c){return c==="All"||c==="Favourites"||R.some(function(r){return r.cat.indexOf(c)>-1})});
     if(state.cat&&cats.indexOf(state.cat)<0)state.cat="";
     var home=(!state.cat&&!state.q);
-    var h='<header class="top"><button class="titlebtn" id="home" title="Go to categories"><h1>Crowhurst Family Recipes</h1></button><p>'+(home?'Our favourite recipes in one place. Pick a category below, or search for a dish or ingredient.':'Tap a recipe to open it. Tap ingredients and steps to tick them off while you cook.')+'</p></header>';
+    var h=(home?'':'<div class="navrow" style="margin-bottom:12px"><button class="homebtn" id="tophome">⌂ Home</button></div>')+'<header class="top"><button class="titlebtn" id="home" title="Go to categories"><h1>Crowhurst Family Recipes</h1></button><p>'+(home?'Our favourite recipes in one place. Pick a category below, or search for a dish or ingredient.':'Tap a recipe to open it. Tap ingredients and steps to tick them off while you cook.')+'</p></header>';
     h+='<div class="search"><label for="q" class="sr" style="position:absolute;left:-9999px">Search recipes</label><input id="q" type="search" placeholder="Search dish or ingredient" value="'+esc(state.q)+'" autocomplete="off">';
     if(!home)h+='<div class="chips" role="toolbar" aria-label="Categories">'+cats.map(function(c){var n=R.filter(function(r){return inCat(r,c)}).length;return '<button class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+esc(c==="Favourites"?"★ Favourites":(LABEL[c]||c))+'<span class="n">'+n+'</span></button>'}).join("")+'</div>';
     h+='</div>';
@@ -379,6 +379,7 @@ tip:"Fill the squash only three-quarters full and don't pack it tight, so the ri
     var q=document.getElementById("q");
     q.addEventListener("input",function(){state.q=q.value;renderResults()});
     document.getElementById("home").onclick=goHome;
+    var th=document.getElementById("tophome");if(th)th.onclick=goHome;
     app.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.cat=b.dataset.cat;store.set("cat",state.cat);app.querySelectorAll(".chip").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderResults()})});
     renderResults();
   }
@@ -398,7 +399,7 @@ tip:"Fill the squash only three-quarters full and don't pack it tight, so the ri
       return;
     }
     var list=R.filter(function(r){return inCat(r,state.cat)&&matches(r,state.q)});
-    var bar=state.cat?'<div class="catbar"><button class="back" id="tocats">‹ Categories</button></div>':'';
+    var bar='';
     function wire(){var t=el.querySelector("#tocats");if(t)t.onclick=function(){state.cat="";state.q="";store.set("cat","");renderList()}}
     if(!list.length){el.innerHTML=bar+'<p class="empty">'+(state.cat==="Favourites"&&!state.q?"No favourites yet. Open a recipe and tap ★ Favourite.":"No recipe matches “"+esc(state.q)+"”. Try another word.")+'</p>';wire();return}
     el.innerHTML=bar+'<p class="count">'+list.length+(list.length===1?" recipe":" recipes")+'</p><ul class="list">'+list.map(function(r){
