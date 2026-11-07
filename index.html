@@ -54,6 +54,17 @@ ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;ga
 .tag.vid{background:var(--saffron-soft);color:var(--ink)}
 .tag.fav{background:var(--saffron);color:#1d2a22}
 .empty{padding:30px 0;color:var(--muted);text-align:center}
+/* Category squares (home) */
+.cats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:2px 0 4px}
+@media(min-width:560px){.cats{grid-template-columns:repeat(3,1fr)}}
+.cat-card{display:flex;flex-direction:column;gap:8px;min-height:120px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 16px 14px;text-align:left;cursor:pointer;color:var(--ink)}
+.cat-card:hover{border-color:var(--accent)}
+.cat-card .ic{font-size:30px;line-height:1}
+.cat-card .nm{font-family:var(--display);font-weight:800;font-size:19px;line-height:1.1;letter-spacing:-.01em;margin-top:auto}
+.cat-card .ct{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.cat-card.fav{background:var(--saffron-soft);border-color:var(--saffron)}
+.cat-card.fav .nm{color:var(--ink)}
+.catbar{display:flex;align-items:center;gap:12px;margin:2px 0 10px}
 /* Detail */
 .back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--accent);font-weight:700;padding:6px 0;cursor:pointer;font-size:17px}
 .dhead{display:flex;flex-direction:column;gap:10px;margin:8px 0 18px}
@@ -323,21 +334,25 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
   R.sort(function(a,b){return a.name.localeCompare(b.name)});
   var ORDER=["All","Favourites","Mains","Pasta","Arabic","Salads","Sides","Soups","Breakfast","Baking","Zak","Quick","Vegetarian","Asian","Fish","Sauces & Basics"];
   var LABEL={"Zak":"For Zak","Quick":"Quick (under 30 min)"};
+  var CATMETA={"Favourites":{ic:"★"},"Mains":{ic:"🍽️"},"Pasta":{ic:"🍝"},"Arabic":{ic:"🥙"},"Salads":{ic:"🥗"},"Sides":{ic:"🥔"},"Soups":{ic:"🍲"},"Breakfast":{ic:"🍳"},"Baking":{ic:"🧁"},"Zak":{ic:"🧒"},"Quick":{ic:"⏱️"},"Vegetarian":{ic:"🥦"},"Asian":{ic:"🍜"},"Fish":{ic:"🐟"},"Sauces & Basics":{ic:"🥣"}};
   var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
   var favs=store.get("fav",[]);
-  var state={q:"",cat:store.get("cat","All")};
+  var _sc=store.get("cat","");if(_sc==="All")_sc="";
+  var state={q:"",cat:_sc};
   var app=document.getElementById("app");
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
   function isFav(id){return favs.indexOf(id)>-1}
-  function inCat(r,c){return c==="All"||(c==="Favourites"?isFav(r.id):r.cat.indexOf(c)>-1)}
+  function inCat(r,c){return !c||c==="All"||(c==="Favourites"?isFav(r.id):r.cat.indexOf(c)>-1)}
   function matches(r,q){if(!q)return true;q=q.toLowerCase();return (r.name+" "+r.cat.join(" ")+" "+r.ing.join(" ")).toLowerCase().indexOf(q)>-1}
 
   function renderList(){
     var cats=ORDER.filter(function(c){return c==="All"||c==="Favourites"||R.some(function(r){return r.cat.indexOf(c)>-1})});
-    if(cats.indexOf(state.cat)<0)state.cat="All";
-    var h='<header class="top"><h1>Crowhurst Family Recipes</h1><p>Our favourite recipes in one place. Tap a recipe to open it. Tap ingredients and steps to tick them off while you cook.</p></header>';
+    if(state.cat&&cats.indexOf(state.cat)<0)state.cat="";
+    var home=(!state.cat&&!state.q);
+    var h='<header class="top"><h1>Crowhurst Family Recipes</h1><p>'+(home?'Our favourite recipes in one place. Pick a category below, or search for a dish or ingredient.':'Tap a recipe to open it. Tap ingredients and steps to tick them off while you cook.')+'</p></header>';
     h+='<div class="search"><label for="q" class="sr" style="position:absolute;left:-9999px">Search recipes</label><input id="q" type="search" placeholder="Search dish or ingredient" value="'+esc(state.q)+'" autocomplete="off">';
-    h+='<div class="chips" role="toolbar" aria-label="Categories">'+cats.map(function(c){var n=R.filter(function(r){return inCat(r,c)}).length;return '<button class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+esc(c==="Favourites"?"★ Favourites":(LABEL[c]||c))+'<span class="n">'+n+'</span></button>'}).join("")+'</div></div>';
+    if(!home)h+='<div class="chips" role="toolbar" aria-label="Categories">'+cats.map(function(c){var n=R.filter(function(r){return inCat(r,c)}).length;return '<button class="chip" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+esc(c==="Favourites"?"★ Favourites":(LABEL[c]||c))+'<span class="n">'+n+'</span></button>'}).join("")+'</div>';
+    h+='</div>';
     h+='<div id="results"></div>';
     h+='<footer>'+R.length+' recipes. ★ Favourites are saved on this phone only.</footer>';
     app.innerHTML=h;
@@ -346,21 +361,36 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
     app.querySelectorAll(".chip").forEach(function(b){b.addEventListener("click",function(){state.cat=b.dataset.cat;store.set("cat",state.cat);app.querySelectorAll(".chip").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderResults()})});
     renderResults();
   }
+  function renderGrid(){
+    var items=["Favourites"].concat(ORDER.filter(function(c){return c!=="All"&&c!=="Favourites"&&R.some(function(r){return r.cat.indexOf(c)>-1})}));
+    return '<div class="cats">'+items.map(function(c){
+      var n=R.filter(function(r){return inCat(r,c)}).length;
+      var m=CATMETA[c]||{ic:"🍴"};
+      return '<button class="cat-card'+(c==="Favourites"?" fav":"")+'" data-cat="'+esc(c)+'"><span class="ic" aria-hidden="true">'+m.ic+'</span><span class="nm">'+esc(c==="Favourites"?"★ Favourites":(LABEL[c]||c))+'</span><span class="ct">'+n+(n===1?" recipe":" recipes")+'</span></button>'}).join("")+'</div>';
+  }
   function renderResults(){
-    var list=R.filter(function(r){return inCat(r,state.cat)&&matches(r,state.q)});
     var el=document.getElementById("results");
-    if(!list.length){el.innerHTML='<p class="empty">'+(state.cat==="Favourites"&&!state.q?"No favourites yet. Open a recipe and tap ★ Favourite.":"No recipe matches “"+esc(state.q)+"”. Try another word.")+'</p>';return}
-    el.innerHTML='<p class="count">'+list.length+(list.length===1?" recipe":" recipes")+'</p><ul class="list">'+list.map(function(r){
+    if(!state.cat&&!state.q){
+      el.innerHTML=renderGrid();
+      el.querySelectorAll(".cat-card").forEach(function(b){b.addEventListener("click",function(){state.cat=b.dataset.cat;store.set("cat",state.cat);renderList()})});
+      return;
+    }
+    var list=R.filter(function(r){return inCat(r,state.cat)&&matches(r,state.q)});
+    var bar=state.cat?'<div class="catbar"><button class="back" id="tocats">‹ Categories</button></div>':'';
+    function wire(){var t=el.querySelector("#tocats");if(t)t.onclick=function(){state.cat="";state.q="";store.set("cat","");renderList()}}
+    if(!list.length){el.innerHTML=bar+'<p class="empty">'+(state.cat==="Favourites"&&!state.q?"No favourites yet. Open a recipe and tap ★ Favourite.":"No recipe matches “"+esc(state.q)+"”. Try another word.")+'</p>';wire();return}
+    el.innerHTML=bar+'<p class="count">'+list.length+(list.length===1?" recipe":" recipes")+'</p><ul class="list">'+list.map(function(r){
       var tags=[];if(isFav(r.id))tags.push('<span class="tag fav">★</span>');if(r.video)tags.push('<span class="tag vid">▶ Video</span>');
       var meta=[r.cat.slice(0,2).map(function(c){return LABEL[c]&&c!=="Quick"?LABEL[c]:c}).join(" · ")];if(r.time)meta.push(r.time);
       return '<li><a class="row" href="#'+r.id+'"><h3>'+esc(r.name)+'</h3><span class="meta">'+tags.join(" ")+'<span>'+meta.map(esc).join("</span><span>")+'</span></span><span class="go" aria-hidden="true">›</span></a></li>'}).join("")+'</ul>';
+    wire();
   }
 
   var wake=null;
   function releaseWake(){if(wake){try{wake.release()}catch(e){}wake=null}}
   function renderRecipe(r){
     releaseWake();
-    var h='<button class="back" id="back">‹ All recipes</button>';
+    var h='<button class="back" id="back">‹ Back</button>';
     h+='<div class="dhead"><h2>'+esc(r.name)+'</h2><div class="facts">';
     if(r.time)h+='<span class="fact"><b>Time</b>'+esc(r.time)+'</span>';
     if(r.serves)h+='<span class="fact"><b>Makes</b>'+esc(r.serves)+'</span>';
@@ -382,7 +412,7 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
       if(r.notes)h+='<div class="note info"><b>Notes</b>'+esc(r.notes)+'</div>';
     }
     if(r.source&&!/^http/.test(r.source))h+='<p class="hint">Recipe by '+esc(r.source)+'</p>';
-    h+='<footer><button class="back" id="back2">‹ All recipes</button></footer>';
+    h+='<footer><button class="back" id="back2">‹ Back</button></footer>';
     app.innerHTML=h;window.scrollTo(0,0);
     function home(){location.hash="";}
     document.getElementById("back").onclick=home;document.getElementById("back2").onclick=home;
