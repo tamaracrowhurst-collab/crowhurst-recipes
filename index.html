@@ -332,7 +332,7 @@ tip:"Stir gently once the okra is in so it doesn't break apart. Watch the TikTok
   function slug(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
   R.forEach(function(r){r.id=slug(r.name);r.ing=r.ing||[];r.steps=r.steps||[];});
   R.sort(function(a,b){return a.name.localeCompare(b.name)});
-  var ORDER=["All","Favourites","Mains","Pasta","Arabic","Salads","Sides","Soups","Breakfast","Baking","Zak","Quick","Vegetarian","Asian","Fish","Sauces & Basics"];
+  var ORDER=["All","Favourites","Pasta","Arabic","Salads","Sides","Soups","Breakfast","Baking","Zak","Asian","Fish","Sauces & Basics"];
   var LABEL={"Zak":"For Zak","Quick":"Quick (under 30 min)"};
   var CATMETA={"Favourites":{ic:"★"},"Mains":{ic:"🍽️"},"Pasta":{ic:"🍝"},"Arabic":{ic:"🥙"},"Salads":{ic:"🥗"},"Sides":{ic:"🥔"},"Soups":{ic:"🍲"},"Breakfast":{ic:"🍳"},"Baking":{ic:"🧁"},"Zak":{ic:"🧒"},"Quick":{ic:"⏱️"},"Vegetarian":{ic:"🥦"},"Asian":{ic:"🍜"},"Fish":{ic:"🐟"},"Sauces & Basics":{ic:"🥣"}};
   var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
