@@ -335,6 +335,12 @@ steps:["Preheat the oven to 220°C (425°F) and line a large baking tray with ba
 tip:"One tray, ready in about 25 minutes. Slice the chicken and peppers a similar thickness so they cook evenly."}
 );
 
+R.push(
+{name:"Kafta and Potatoes with Lemon and Oregano Sauce",cat:["Arabic","Mains"],time:"1 hr",serves:"4–6",video:"https://www.instagram.com/p/DeL9ZMjN4N1/",
+ing:["4 medium potatoes, cut into wedges","800 g kafta, shaped into patties (see below)","¼ cup lemon juice","3 tbsp olive oil","1 dessertspoon salt","1 tsp black pepper","1 tbsp dried oregano","1 tbsp mustard","1 cup broth (any) or water","# For the kafta","800 g finely minced beef","¼ cup finely chopped onion","¼ cup finely chopped parsley (optional)","½ tsp ground coriander","½ tsp cumin","Salt and black pepper to taste"],
+steps:["Preheat the oven to 180°C.","Make the kafta: combine the minced beef, onion, parsley, coriander, cumin, salt and pepper. Shape into patties.","In a bowl, whisk together the lemon juice, olive oil, salt, black pepper, oregano and mustard. Add the broth or water and mix well.","Arrange the potato wedges in an ovenproof dish and pour the dressing over them. Bake for 20 minutes.","Take the dish out and arrange the kafta patties over the potatoes. Return to the oven and bake another 20 minutes, until the potatoes are tender and the kafta is cooked through.","Broil (grill) for a few minutes until the top is golden, then serve."]}
+);
+
 (function(){
   function slug(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/&/g,"and").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
   R.forEach(function(r){r.id=slug(r.name);r.ing=r.ing||[];r.steps=r.steps||[];});
